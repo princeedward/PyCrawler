@@ -1,4 +1,5 @@
 import collections
+import threading
 
 class Queue:
     ''' This queue data structure suppose to implement on the top of in memmory
@@ -11,15 +12,26 @@ class Queue:
             self.mem_queue_ = collections.deque()
         else:
             self.mem_queue_ = collections.deque(init_list)
+        # In this perticular case, deque is thread safe, lock is unneccessary
+        self.mutex_ = threading.Lock()
+        self.unfinished_ = 0
 
     def append(self, val):
-        self.mem_queue_.append(val)
+        with self.mutex_:
+            self.mem_queue_.append(val)
+            self.unfinished_ += 1
 
     def pop(self):
-        return self.mem_queue_.popleft()
+        with self.mutex_:
+            self.unfinished_ -= 1
+            result = self.mem_queue_.popleft()
+        return result
 
     def top(self):
-        return self.mem_queue_[0]
+        with self.mutex_:
+            result = self.mem_queue_[0]
+        return result
 
     def __len__(self):
-        return len(self.mem_queue_)
+        return self.unfinished_
+
