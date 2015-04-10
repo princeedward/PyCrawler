@@ -1,14 +1,21 @@
 from lxml import etree
 
+
 # This class is not thread safe for now
+# The xpaths stored in the class has to be valid
 class XpathEval:
+
     # @param xpaths String or list of strings
-    def __init__(self, xpaths, superised = True):
-        if type(xpaths) is str:
-            self.xpath_list_ = [xpaths]
-            self.xpath_ = set([xpaths]) # use set to reduce duplicated queries
-        elif type(xpaths) is list: # TODO: This condition needs to be enforced
-            self.xpath_list_ = xpaths
+    def __init__(self, xpaths, superised=True):
+        if isinstance(xpaths, str):
+            if self.validateXpath(xpaths):
+                self.xpath_ = set(
+                    [xpaths])  # use set to reduce duplicated queries
+            else:
+                self.xpath_ = set()
+        elif isinstance(xpaths, list):
+            xpaths = [each for each in xpaths if isinstance(each, str) and
+                      self.validateXpath(each)]
             self.xpath_ = set(xpaths)
         else:
             raise ValueError("Wrong type of the xpaths argument, it should be \
@@ -47,11 +54,11 @@ class XpathEval:
             return (False, result)
 
     @staticmethod
-    def singleDocMatch(xpath, doc):
+    def singleDocMatch(xpath, doc, superised=True):
         try:
             root = etree.fromstring(doc)
         except Exception as e:
-            if self.error_superised_:
+            if superised:
                 # do loging
                 print e.message()
                 return []
@@ -60,16 +67,35 @@ class XpathEval:
         result = root.xpath(xpath)
         return result
 
-    # @param index The index of the xpath expression in the list
-    # @return
-    def isValid(self, index):
-        return self.result_[self.xpath_list_[index]][0]
+    @staticmethod
+    def validateXpath(xpath):
+        try:
+            etree.XPath(xpath)
+        except etree.XPathSyntaxError:
+            return False
+        except etree.XPathEvalError:
+            return False
+        except Exception:
+            raise
+        return True
+
+    # @param expression The xpath expression stored to evaluate
+    # @return True for
+    # TODO: think about the return of invalid expression
+    def isValid(self, expression):
+        if not self.validateXpath(expression):
+            return False
+        return self.result_[expression][0]
 
     # TODO: Implement this function when doing the display on the website
-    def resultToString(self, result = None):
+    def resultToString(self, result=None):
         pass
 
+    # @param xpath_str A xpath expression
+    # @return True if the string is a valid path expression
     def addXpath(self, xpath_str):
+        if not self.validateXpath(xpath_str):
+            return False
         self.xpath_list_.append(xpath_str)
         self.xpath_.add(xpath_str)
-
+        return True
