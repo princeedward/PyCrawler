@@ -20,7 +20,7 @@ class XpathEval_test(unittest.TestCase):
             self.assertEqual(len(xpath_eval.xpath_), 1)
 
     def test_document_1(self):
-        f = open('test_xml_1.xml', 'r')
+        f = open('test/test_xml_1.xml', 'r')
         self.xml_doc_1 = f.read()
         f.close()
         test_paths = ["/imas/production",

@@ -60,3 +60,6 @@ target/
 **.sqlite3
 **.db
 
+# Vim temporary files
+*.swp
+
