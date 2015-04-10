@@ -1,0 +1,87 @@
+<imas>
+    <production name="765 Production">
+        <idol>
+            <fn>haruka</fn>
+            <ln>amami</ln>
+            <age>17</age>
+        </idol>
+        <idol>
+            <fn>chihaya</fn>
+            <ln>kisaragi</ln>
+            <age>16</age>
+        </idol>
+        <idol>
+            <fn>yukiko</fn>
+            <ln>hagiwara</ln>
+            <age>17</age>
+        </idol>
+        <idol>
+            <fn>yayoi</fn>
+            <ln>takatsuki</ln>
+            <age>14</age>
+        </idol>
+        <idol>
+            <fn>ritsuko</fn>
+            <ln>akizuki</ln>
+            <age>19</age>
+        </idol>
+        <idol>
+            <fn>azusa</fn>
+            <ln>miura</ln>
+            <age>21</age>
+        </idol>
+        <idol>
+            <fn>iori</fn>
+            <ln>minase</ln>
+            <age>15</age>
+        </idol>
+        <idol>
+            <fn>makoro</fn>
+            <ln>kikuchi</ln>
+            <age>17</age>
+        </idol>
+        <idol>
+            <fn>ami</fn>
+            <ln>futami</ln>
+            <age>13</age>
+        </idol>
+        <idol>
+            <fn>mami</fn>
+            <ln>futami</ln>
+            <age>13</age>
+        </idol>
+    </production>
+    <production name="961 Production">
+        <idol>
+            <fn>miki</fn>
+            <ln>hoshii</ln>
+            <age>16</age>
+        </idol>
+        <idol>
+            <fn>hibiki</fn>
+            <ln>ganaha</ln>
+            <age>16</age>
+        </idol>
+    </production>
+    <production name="876 Production">
+        <idol>
+            <fn>ai</fn>
+            <ln>hidaka</ln>
+            <age>13</age>
+            <c>peach</c>
+        </idol>
+        <idol>
+            <fn>eri</fn>
+            <ln>mizutani</ln>
+            <age>15</age>
+            <c>periwinkle</c>
+        </idol>
+        <idol>
+            <fn>ryo</fn>
+            <ln>akizuki</ln>
+            <age>15</age>
+            <c>mint green</c>
+        </idol>
+    </production>
+</imas>
+

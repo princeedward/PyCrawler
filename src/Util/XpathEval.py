@@ -3,7 +3,7 @@ from lxml import etree
 # This class is not thread safe for now
 class XpathEval:
     # @param xpaths String or list of strings
-    def __init__(self, xpaths, superised = False):
+    def __init__(self, xpaths, superised = True):
         if type(xpaths) is str:
             self.xpath_list_ = [xpaths]
             self.xpath_ = set([xpaths]) # use set to reduce duplicated queries
@@ -11,8 +11,8 @@ class XpathEval:
             self.xpath_list_ = xpaths
             self.xpath_ = set(xpaths)
         else:
-            raise ValueError("Wrong type of the xpaths argument, it should \
-                             either be string or list of strings")
+            raise ValueError("Wrong type of the xpaths argument, it should be \
+                              either string or list of strings")
         self.error_superised_ = superised
 
     # @param doc A string representation of the XML document
@@ -26,6 +26,7 @@ class XpathEval:
             if self.error_superised_:
                 # do loging
                 print e.message()
+                return []
             else:
                 raise
         return self.domMatch(root)
@@ -53,6 +54,7 @@ class XpathEval:
             if self.error_superised_:
                 # do loging
                 print e.message()
+                return []
             else:
                 raise
         result = root.xpath(xpath)
