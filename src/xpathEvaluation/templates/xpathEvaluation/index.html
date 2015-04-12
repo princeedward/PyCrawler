@@ -1,0 +1,12 @@
+{% if message %}
+  {{ message }}
+{% endif %}
+<form action="{% url 'XpathEval'  %}" method="GET">
+  Xpath xpression: <br>
+  <input type="text" name="xpath_string">
+  <br>
+  Document url: <br>
+  <input type="text" name="document_url">
+  <br>
+  <input type="submit" value="Submit">
+</form>
