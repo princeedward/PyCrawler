@@ -1,10 +1,15 @@
-import dbBDB
+from .dbBDB import dbBDB
+
 
 class NoSQL:
+
     '''May need to synchronized on db_instance_ for concurrent writing '''
-    def __init__(self, dbtype = "bdb", dblocal = "localhost", dbport = 3306):
+    def __init__(self, dbtype="bdb", param={}):
         if dbtype == "bdb":
-            self.db_instance_ = BDB(dblocal)
+            if "path" in param:
+                self.db_instance_ = dbBDB(param["path"])
+            else:
+                self.db_instance_ = dbBDB("localhost")
         else:
             raise ValueError("Unrecognized database type")
 
@@ -19,4 +24,3 @@ class NoSQL:
 
     def close(self):
         self.db_instance_.close()
-
