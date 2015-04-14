@@ -23,28 +23,14 @@ class ThreadedRequestHandler(SocketServer.StreamRequestHandler):
         while True:
             try:
                 data = self.rfile.readline().strip()
-            except Exception:
+            except Exception as e:
+                print e  # log exception to terminal
                 break
             request_type = data[0]
             if request_type == "s":
-                digit = int(data[1:3])
-                domain = data[3:3+digit]
-                record_type = data[3+digit:]
-                if record_type:
-                    query = self.server.c.submit(domain, adns.rr.A)
-                self.server.host_cache[query] = domain
+                self._subHandle(data)
             elif request_type == "r":
-                digit = int(data[1:3])
-                domain = data[3:3+digit]
-                if domain in self.server.ip_cache:
-                    ip = self.server.ip_cache[domain]
-                else:
-                    ip = ""
-                digit_length = str(len(ip))
-                if len(digit_length) == 1:
-                    response = "".join(["0", digit_length, ip, '\n'])
-                else:
-                    response = "".join([digit_length, ip, '\n'])
+                response = self._reqHandle(data)
                 try:
                     self.wfile.write(response)
                 except Exception:
@@ -58,6 +44,30 @@ class ThreadedRequestHandler(SocketServer.StreamRequestHandler):
             self.wfile.write("q\n")
         except Exception:
             pass
+
+    def _subHandle(self, data):
+        digit = int(data[1:3])
+        domain = data[3:3+digit]
+        record_type = data[3+digit:]
+        if record_type == "CNAME":
+            query = self.server.c.submit(domain, adns.rr.CNAME)
+        else:
+            query = self.server.c.submit(domain, adns.rr.A)
+        self.server.host_cache[query] = domain
+
+    def _reqHandle(self, data):
+        digit = int(data[1:3])
+        domain = data[3:3+digit]
+        if domain in self.server.ip_cache:
+            ip = self.server.ip_cache[domain]
+        else:
+            ip = ""
+        digit_length = str(len(ip))
+        if len(digit_length) == 1:
+            response = "".join(["0", digit_length, ip, '\n'])
+        else:
+            response = "".join([digit_length, ip, '\n'])
+        return response
 
 
 class ThreadedTCPServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
@@ -91,10 +101,10 @@ class DnsChecker(Process):
         self._stop.set()
 
     def run(self):
-        print "DNS cache server is running at: %s:%d" %(self.host,self.port)
+        print "DNS cache server is running at: %s:%d" % (self.host, self.port)
         print "This server uses BIND9 and GNU adns library to resolve dns"
         print "To submit queries," \
-                " please use DnsBuffer() function to create a query object"
+            " please use DnsBuffer() function to create a query object"
         self.server_thread.start()
         while not self._stop.isSet():
             for query in self.adns_state.completed():
@@ -119,11 +129,12 @@ def DnsCacher(host="localhost", port=5436):
 
 class DnsRequirer:
 
-    def __init__(self, host, port):
+    def __init__(self, host, port, restart=False):
         self.host = host
         self.port = port
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.socket.connect((self.host, self.port))  # TODO: implement restart
+        self.socket.connect((self.host, self.port))
+        self._restart_flag = restart
 
     def submit(self, domain, rtype="A"):
         if len(domain) > 100:
@@ -135,8 +146,13 @@ class DnsRequirer:
             request = "".join(["s", digit, domain, rtype, '\n'])
         try:
             self.socket.sendall(request)
-        except Exception:
-            return False
+        except socket.error:
+            if self._restart_flag:
+                self.restart()
+                self.socket.sendall(request)
+                return True
+            else:
+                raise
         else:
             return True
 
@@ -149,13 +165,30 @@ class DnsRequirer:
         else:
             request = "".join(["r", digit, domain, '\n'])
         try:
-            self.socket.sendall(request)
-            response = self.socket.recv(1024).strip()
-            digit = int(response[0:2])
-            ip = response[2:2+digit]
-            return ip
+            return self._requireIP(request)
+        except socket.error:
+            if self._restart_flag:
+                self.restart()
+                return self._requireIP(request)
+            else:
+                raise
+                return None
+
+    def _requireIP(self, request):
+        self.socket.sendall(request)
+        response = self.socket.recv(1024).strip()
+        digit = int(response[0:2])
+        ip = response[2:2+digit]
+        return ip
+
+    def restart(self):
+        try:
+            self.socket.sendall("q\n")
         except Exception:
-            return None
+            pass
+        self.socket.close()
+        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.socket.connect((self.host, self.port))
 
     def __del__(self):
         try:
