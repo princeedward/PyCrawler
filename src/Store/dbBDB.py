@@ -1,33 +1,36 @@
-import dbInterface
+from dbInterface import dbInterface
 import os.path
 import cPickle as pickle
 import bsddb
 
+
+# TODO: Update the implementation
 class dbBDB(dbInterface):
-    def __init__(self, location):
-        if location == "localhost":
+
+    def __init__(self, param):
+        if param["path"] == "localhost":
             self.db_path_ = "./local_db.db"
         else:
-            if os.path.isfile(location):
-                self.db_path_ = location
+            if os.path.isfile(param["path"]):
+                self.db_path_ = param["path"]
             else:
                 raise ValueError("Database does not exist")
         self.db_ = bsddb.btopen(self.db_path_, 'c')
 
     def add(self, key, value):
-        if not type(key) is str:
+        if not isinstance(key, str):
             key = pickle.dumps(key)
-        if type(value) is str:
-            data = "".join(["n",value])
+        if isinstance(value, str):
+            data = "".join(["n", value])
         else:
-            data = "".join(["p",pickle.dumps(value)])
+            data = "".join(["p", pickle.dumps(value)])
         self.db_[key] = data
         self.db_.sync()
 
     def get(self, key):
         if not type(key) in str:
             key = pickle.dumps(key)
-        if self.db_.has_key(key):
+        if key in self.db_:
             data = self.db_[key]
             if data[0] == "n":
                 return data[1:]
@@ -43,8 +46,7 @@ class dbBDB(dbInterface):
     def has(self, key):
         if not type(key) in str:
             key = pickle.dumps(key)
-        if self.db_.has_key(key):
+        if key in self.db_:
             return True
         else:
             return False
-

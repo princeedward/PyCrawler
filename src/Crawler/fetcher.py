@@ -6,6 +6,7 @@ from .httpclient import HttpClient, RelativeURIError
 from .urlhandler import UrlHandler
 from .asyncdns import DnsBuffer
 from .urlregex import URL_REGEX
+from contentsave import SaveAndStatistics
 
 
 # This class indicate the status of the fetcher
@@ -106,7 +107,10 @@ def Fetcher(job, param, works, monitor):
                              doc_type=resp_header["content-type"],
                              handle=UrlHandler, root_url=job.url)
     # do statistics and save the document and statistics (asyn)
-
+    SaveAndStatistics(job, content, param,
+                      response_header = resp_header,
+                      url_cache = records
+                      )
     # If job has been finished succesful, indicate the main process
     monitor.put(Status(200))
 

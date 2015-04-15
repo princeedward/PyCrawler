@@ -1,6 +1,8 @@
-from abs import ABCMeta, abstractmethod
+from abc import ABCMeta, abstractmethod
 
-class dbInterface(metaclass=ABCMeta):
+
+class dbInterface:
+
     '''This is an abstract class which each nosql database module should
     implement at least the following methods:
         1. add: add a key-value pair to the database
@@ -8,19 +10,35 @@ class dbInterface(metaclass=ABCMeta):
     Extra requirements:
         1. Check database openablity, if not openable then throw ValueError
     '''
-    def __init__(self, location, port):
-        self.location = location
-        self.port = port
+    __metaclass__ = ABCMeta
+
+    # @param param a diction of parameters
+    @abstractmethod
+    def __init__(self, param):
+        pass
 
     # @param key an object - must be serializable
     # @param value an object - must be serializable
     @abstractmethod
     def add(self, key, value):
         pass
+
+    # @param key an object - must be serializable
+    # @param mapping a python dict object
+    @abstractmethod
+    def adddict(self, key, mapping):
+        pass
+
     # @param key an object - must be serializable
     # @return The value object
     @abstractmethod
     def get(self, key):
+        pass
+
+    # @param key the key of the dictoinary
+    # @param secondkey the key of the value inside dictionary
+    @abstractmethod
+    def getdict(self, key, secondkey):
         pass
 
     @abstractmethod
@@ -32,4 +50,3 @@ class dbInterface(metaclass=ABCMeta):
     @abstractmethod
     def has(self, key):
         pass
-

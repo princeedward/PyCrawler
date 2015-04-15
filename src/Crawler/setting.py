@@ -37,7 +37,7 @@ DATABASE = {
         "engine": "redis",
         "host": "localhost",
         "port": 6379,
-        "db": {"urlcache": 1},
+        "db": {"urlcache": 1, "content": 2, "meta": 3},
         "username": "",
         "password": "",
     }

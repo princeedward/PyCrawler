@@ -17,19 +17,20 @@ def UrlChecker(job, param, headers):
     result_str = db.get(job.identifier)
     # For the url that has never been cached before or deleted by LRU
     if result_str is None:
-        db.set(job.identifier, pk.dumps({
+        result = {
             "last-modified": last_update,
             "url": job.url,
-        }))
-        return False, None
+        }
+        # TODO: shouldn't pickle at this levl
+        db.set(job.identifier, pk.dumps(result))
+        return False, result
     result = pk.loads(result_str)
     # For the urls that is not cached but has the same identifer
     if result["url"] != job.url:
-        db.set(job.identifier, pk.dumps({
-            "last-modified": last_update,
-            "url": job.url,
-        }))
-        return False, None
+        result["url"] = job.url
+        result["last-modified"] = last_update
+        db.set(job.identifier, pk.dumps(result))
+        return False, result
     cached_date = result["last-modified"]
     hour_diff = (mktime(last_update) - mktime(cached_date))/3600
     if hour_diff >= param["crawlperiod"]:
