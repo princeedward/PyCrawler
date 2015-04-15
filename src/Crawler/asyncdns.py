@@ -49,11 +49,15 @@ class ThreadedRequestHandler(SocketServer.StreamRequestHandler):
         digit = int(data[1:3])
         domain = data[3:3+digit]
         record_type = data[3+digit:]
-        if record_type == "CNAME":
-            query = self.server.c.submit(domain, adns.rr.CNAME)
-        else:
-            query = self.server.c.submit(domain, adns.rr.A)
-        self.server.host_cache[query] = domain
+        # Don't check whether it has been already cached
+        # because ip could be updated and it doesn't slow down speed much
+        with self.server._work_indicator:
+            if record_type == "CNAME":
+                query = self.server.c.submit(domain, adns.rr.CNAME)
+            else:
+                query = self.server.c.submit(domain, adns.rr.A)
+            self.server.host_cache[query] = domain
+            self.server._work_indicator.notify()
 
     def _reqHandle(self, data):
         digit = int(data[1:3])
@@ -78,6 +82,7 @@ class ThreadedTCPServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
         self.c = others[0]
         self.ip_cache = others[1]
         self.host_cache = others[2]
+        self._work_indicator = others[3]
 
 
 class DnsChecker(Process):
@@ -87,10 +92,11 @@ class DnsChecker(Process):
         self.adns_state = adns.init()
         self.ip_cache = {}
         self.host_cache = {}
+        self._workload = threading.Condition()
         self.server = ThreadedTCPServer((host, port),
                                         ThreadedRequestHandler,
                                         (self.adns_state, self.ip_cache,
-                                         self.host_cache))
+                                         self.host_cache, self._workload))
         self.host, self.port = self.server.server_address
 
         self.server_thread = threading.Thread(target=self.server.serve_forever)
@@ -99,6 +105,8 @@ class DnsChecker(Process):
 
     def close(self):
         self._stop.set()
+        with self._workload:
+            self._workload.notify()
 
     def run(self):
         print "DNS cache server is running at: %s:%d" % (self.host, self.port)
@@ -107,12 +115,14 @@ class DnsChecker(Process):
             " please use DnsBuffer() function to create a query object"
         self.server_thread.start()
         while not self._stop.isSet():
-            for query in self.adns_state.completed():
-                ip = query.check()
-                host = self.host_cache[query]
-                del self.host_cache[query]
-                if len(ip[3]) >= 1:
-                    self.ip_cache[host] = ip[3][0]
+            with self._workload:
+                for query in self.adns_state.completed():
+                    ip = query.check()
+                    host = self.host_cache[query]
+                    del self.host_cache[query]
+                    if len(ip[3]) >= 1:
+                        self.ip_cache[host] = ip[3][0]
+                self._workload.wait()
         self.server.shutdown()
 
     def __del__(self):
