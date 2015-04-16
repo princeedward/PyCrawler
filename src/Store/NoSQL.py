@@ -7,6 +7,7 @@ class NoSQL:
     '''May need to synchronized on _db_instance for concurrent writing '''
 
     def __init__(self, dbtype="bdb", param={}):
+        self._db_instance = None
         if dbtype == "bdb":
             if "path" in param:
                 self._db_instance = dbBDB(param)
@@ -34,7 +35,8 @@ class NoSQL:
         return self._db_instance.has(key)
 
     def close(self):
-        self._db_instance.close()
+        if self._db_instance:
+            self._db_instance.close()
 
     def __del__(self):
         self.close()

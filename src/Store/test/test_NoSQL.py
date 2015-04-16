@@ -16,9 +16,12 @@ class test_nosql(unittest.TestCase):
         # test right database type
         try:
             db = NoSQL("redis", param)
-            db = NoSQL("bdb", param)
-        except Exception:
-            self.fail("Correct database names, unexpected exceptions")
+        except Exception as e:
+            self.fail("Correct database name:redis, unexpected exceptions")
+        # try:
+        #     db = NoSQL("bdb", param)
+        # except Exception as e:
+        #     self.fail("Correct database name:bdb, unexpected exceptions")
 
     def test_redis_init(self):
         # test bad init parameters
@@ -60,58 +63,23 @@ class test_nosql(unittest.TestCase):
         p = multiprocessing.Pool(100)
         # -- concurrent set
         BIG_PAIRS = [(str(i), BIG_LIST[i]) for i in xrange(len(BIG_LIST))]
-        def worker(pairs):
-            param = {}
-            db = NoSQL("redis", param)
-            db.set(pairs[0], pairs[1])
-        try:
-            p.map(worker, BIG_PAIRS)
-        except:
-            self.fail("Concurrent writing fail, different keys")
-        def worker2(value):
-            param = {}
-            db = NoSQL("redis", param)
-            db.set("foo", value)
-        try:
-            p.map(worker2, BIG_LIST)
-        except:
-            self.fail("Concurrent writing fail, same keys")
+        p.map(worker, BIG_PAIRS)
+        p.map(worker2, BIG_LIST)
+        # -- check result
+        r = redis.Redis()
+        errornum = 0
+        for i in xrange(len(BIG_LIST)):
+            if r.get(str(i)) != BIG_LIST[i]:
+                errornum += 1
+        self.assertEqual(errornum, 0)
         # -- concurrent get
-        def worker(pairs):
-            param = {}
-            db = NoSQL("redis", param)
-            db.get(pairs[0])
-        try:
-            p.map(worker, BIG_PAIRS)
-        except:
-            self.fail("Concurrent getting fail, different keys")
-        def worker2(value):
-            param = {}
-            db = NoSQL("redis", param)
-            db.get("foo")
-        try:
-            p.map(worker2, BIG_LIST)
-        except:
-            self.fail("Concurrent getting fail, same keys")
+        p.map(worker3, BIG_PAIRS)
+        p.map(worker4, BIG_LIST)
         # test fast serialized set and get
         # test different database concurrent write
         dbnum = range(10)
-        def worker3(value):
-            param["db"] = value
-            db = NoSQL("redis", param)
-            db.set("foo", "bar")
-        try:
-            p.map(worker3, dbnum)
-        except:
-            self.fail("Concurrent writing fail, different dbs")
-        def worker3(value):
-            param["db"] = value
-            db = NoSQL("redis", param)
-            db.get("foo")
-        try:
-            p.map(worker3, dbnum)
-        except:
-            self.fail("Concurrent getting fail, different dbs")
+        p.map(worker5, dbnum)
+        p.map(worker6, dbnum)
 
     def test_redis_set_dict(self):
         # ---- test set key dict pairs
@@ -124,6 +92,38 @@ class test_nosql(unittest.TestCase):
     def test_redis_destruct(self):
         # destruct should not raise error
         pass
+
+def worker(pairs):
+    param = {}
+    db = NoSQL("redis", param)
+    db.set(pairs[0], pairs[1])
+
+def worker2(value):
+    param = {}
+    db = NoSQL("redis", param)
+    db.set("foo", value)
+
+def worker3(pairs):
+    param = {}
+    db = NoSQL("redis", param)
+    db.get(pairs[0])
+
+def worker4(value):
+    param = {}
+    db = NoSQL("redis", param)
+    db.get("foo")
+
+def worker5(value):
+    param = {}
+    param["db"] = value
+    db = NoSQL("redis", param)
+    db.set("foo", "bar")
+
+def worker6(value):
+    param = {}
+    param["db"] = value
+    db = NoSQL("redis", param)
+    db.get("foo")
 
 def main():
     unittest.main()
