@@ -14,8 +14,6 @@ class XpathEval_test(unittest.TestCase):
         except ValueError:
             self.fail("XpathEval cannot be initialized with a single string")
         else:
-            self.assertIs(type(xpath_eval.xpath_list_), list)
-            self.assertEqual(len(xpath_eval.xpath_list_), 1)
             self.assertIs(type(xpath_eval.xpath_), set)
             self.assertEqual(len(xpath_eval.xpath_), 1)
 

@@ -5,6 +5,12 @@ import redis
 class dbRedis(dbInterface):
 
     def __init__(self, param):
+        if "host" not in param:
+            param["host"] = "localhost"
+        if "port" not in param:
+            param["port"] = 6379
+        if "db" not in param:
+            param["db"] = 0
         self._rds = redis.Redis(host=param["host"], port=param["port"],
                                 db=param["db"])
 

@@ -8,7 +8,7 @@ import bsddb
 class dbBDB(dbInterface):
 
     def __init__(self, param):
-        if param["path"] == "localhost":
+        if "path" not in param or param["path"] == "localhost":
             self.db_path_ = "./local_db.db"
         else:
             if os.path.isfile(param["path"]):
