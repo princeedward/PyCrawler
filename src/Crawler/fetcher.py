@@ -1,6 +1,7 @@
 import lxml.html as xhtml
 import re
 import hashlib
+from urlparse import urlparse
 from .checker import UrlChecker
 from .httpclient import HttpClient, RelativeURIError
 from .urlhandler import UrlHandler
@@ -27,7 +28,11 @@ class Job:
     def __init__(self, url, params):
         self.url = url
         self.identifier = self.calculateID(self.url)
-        self.host = params["host"] if "host" in params else None
+        if "host" in params:
+            self.host = params["host"]
+        else:
+            parsed_url = urlparse(self.url)
+            self.host = parsed_url.netloc
         self.host_ip = None
 
     def setLastUpdate(self, date):

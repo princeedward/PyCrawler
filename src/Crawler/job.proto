@@ -1,0 +1,7 @@
+package cQueueJob;
+
+message Job {
+  required string url = 1;
+  required string host = 2;
+  optional string host_ip = 3;
+}
