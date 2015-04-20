@@ -3,7 +3,7 @@ import re
 import hashlib
 from urlparse import urlparse
 from .checker import UrlChecker
-from .httpclient import HttpClient, RelativeURIError
+from .httpclient import HttpClient, RelativeURIError, ServerNotFoundError
 from .urlhandler import UrlHandler
 from .asyncdns import DnsBuffer
 from .urlregex import URL_REGEX
@@ -80,6 +80,9 @@ def Fetcher(job, param, works, monitor):
             job.url, method="HEAD", headers=headers)
     except RelativeURIError:
         monitor.put(Status(401, "Url is not absolute"))
+        return
+    except ServerNotFoundError:
+        monitor.put(Status(404, "Server is not found"))
         return
     except Exception as e:
         monitor.put(Status(500, e.message()))

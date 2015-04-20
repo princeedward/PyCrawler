@@ -8,3 +8,4 @@ class HttpClient(httplib2.Http):
 
 
 RelativeURIError = httplib2.RelativeURIError
+ServerNotFoundError = httplib2.ServerNotFoundError
