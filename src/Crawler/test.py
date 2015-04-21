@@ -1,5 +1,6 @@
 import unittest
 from test.test_httpclient import testHttpclient
+from test.test_checker import testUrlChecker
 
 
 def main():
