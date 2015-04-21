@@ -9,7 +9,7 @@
 import adns
 import SocketServer
 import threading
-from multiprocessing import Process
+from multiprocessing import Process, Condition, Event
 import socket
 import sys
 
@@ -87,25 +87,32 @@ class ThreadedTCPServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
 
 class DnsChecker(Process):
 
-    def __init__(self, host, port):
+    def __init__(self, host, port, flags=None):
         Process.__init__(self)
         self.adns_state = adns.init()
         self.ip_cache = {}
         self.host_cache = {}
-        self._workload = threading.Condition()
-        self.server = ThreadedTCPServer((host, port),
-                                        ThreadedRequestHandler,
-                                        (self.adns_state, self.ip_cache,
-                                         self.host_cache, self._workload))
-        self.host, self.port = self.server.server_address
+        # self._workload = threading.Condition()
+        self._workload = flags[0] if flags and len(flags) > 0 else \
+            threading.Condition()
+        self.host = host
+        self.port = port
+        # self.server = ThreadedTCPServer((host, port),
+        #                                 ThreadedRequestHandler,
+        #                                 (self.adns_state, self.ip_cache,
+        #                                  self.host_cache, self._workload))
+        # self.host, self.port = self.server.server_address
 
-        self.server_thread = threading.Thread(target=self.server.serve_forever)
-        self.server_thread.daemon = True
-        self._stop = threading.Event()
+        # self.server_thread = threading.Thread(target=self.server.serve_forever)
+        # self.server_thread.daemon = True
+        # self._stop = threading.Event()
+        self._stop = flags[1] if flags and len(flags) > 1 else threading.Event()
 
     def close(self):
+        print "Begin to close the process"
         self._stop.set()
         with self._workload:
+            print "notify has been called"
             self._workload.notify()
 
     def run(self):
@@ -113,8 +120,16 @@ class DnsChecker(Process):
         print "This server uses BIND9 and GNU adns library to resolve dns"
         print "To submit queries," \
             " please use DnsBuffer() function to create a query object"
+        self.server = ThreadedTCPServer((self.host, self.port),
+                                        ThreadedRequestHandler,
+                                        (self.adns_state, self.ip_cache,
+                                         self.host_cache, self._workload))
+        self.host, self.port = self.server.server_address
+
+        self.server_thread = threading.Thread(target=self.server.serve_forever)
+        self.server_thread.daemon = True
         self.server_thread.start()
-        while not self._stop.isSet():
+        while not self._stop.is_set():
             with self._workload:
                 for query in self.adns_state.completed():
                     ip = query.check()
@@ -123,11 +138,13 @@ class DnsChecker(Process):
                     if len(ip[3]) >= 1:
                         self.ip_cache[host] = ip[3][0]
                 self._workload.wait()
+        print "Get out of the loop:", self.name
         self.server.shutdown()
+        print "Shutted down the server"
 
     def __del__(self):
-        self.server.shutdown()
         self.close()
+        print "Server shutting down"
 
 
 def DnsCacher(host="localhost", port=5436):
@@ -215,10 +232,14 @@ def DnsBuffer(host="localhost", port=5436):
 
 if __name__ == "__main__":
     args = sys.argv[1:]
+    flags = [Condition(), Event()]
     if len(args) == 2:
-        dns_checker = DnsChecker(args[0], args[1])
+        dns_checker = DnsChecker(args[0], args[1], flags)
     else:
-        dns_checker = DnsChecker(host="localhost", port=5436)
+        dns_checker = DnsChecker("localhost", 5436, flags)
     dns_checker.daemon = True
     dns_checker.start()
-    dns_checker.join()
+    import time
+    time.sleep(5)
+    # dns_checker.join()
+    dns_checker.close()

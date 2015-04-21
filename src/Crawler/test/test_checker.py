@@ -19,7 +19,7 @@ class testUrlChecker(unittest.TestCase):
         url = "http://www.seas.upenn.edu/~yunkai/"
         # clear cache and other initilization
         del_job = Job(url, {})
-        test_db.delete(del_job.identifier)  # TODO: This needs to be supported
+        test_db.delete(del_job.identifier)
         # test none cached url
         job_parameters = {}
         test_job = Job(url, job_parameters)

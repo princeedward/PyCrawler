@@ -107,7 +107,7 @@ def Fetcher(job, param, works, monitor):
         monitor.put(Status(200, "Url exists and skiped"))
         return
     # Extract urls and create new jobs, submit dns resolve requests(async)
-    # TODO: Think about this, whether this is necessary
+    # TODO: Think about "connection -> close", whether this is necessary
     headers["Connection"] = "close"
     resp_header, content = http_client.request(
         job.url, method="GET", headers=headers)
