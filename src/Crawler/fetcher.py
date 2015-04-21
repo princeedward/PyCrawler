@@ -2,11 +2,11 @@ import lxml.html as xhtml
 import re
 import hashlib
 from urlparse import urlparse
-from .checker import UrlChecker
-from .httpclient import HttpClient, RelativeURIError, ServerNotFoundError
-from .urlhandler import UrlHandler
-from .asyncdns import DnsBuffer
-from .urlregex import URL_REGEX
+from checker import UrlChecker
+from httpclient import HttpClient, RelativeURIError, ServerNotFoundError
+from urlhandler import UrlHandler
+from asyncdns import DnsBuffer
+from urlregex import URL_REGEX
 from contentsave import SaveAndStatistics
 
 
@@ -145,7 +145,7 @@ def UrlExtractor(str_doc, param, wqueue, doc_type="html",
     elif "xml" in doc_type or "text/plain" in doc_type:
         tmp_results = re.findall(URL_REGEX, str_doc)
         urls = [each[0] if "http" in each[0] else "".join(["http://", each[0]])
-                for each in results if len(each[0]) > 0]
+                for each in tmp_results if len(each[0]) > 0]
     else:
         return None
     # TODO: think about where to put the filter level url filtering
@@ -153,6 +153,7 @@ def UrlExtractor(str_doc, param, wqueue, doc_type="html",
         others = {}
         if handle:
             # pack more options in "param" if need
+            opts = {}
             each_url, others = handle(each_url, param, opts)
         # A quick dirty check of the duplicate url in the current page
         if len(each_url) == 0 or each_url in url_set:

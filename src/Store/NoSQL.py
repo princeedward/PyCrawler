@@ -34,6 +34,9 @@ class NoSQL:
     def has(self, key):
         return self._db_instance.has(key)
 
+    def delete(self, key):
+        return self._db_instance.delete(key)
+
     def close(self):
         if self._db_instance:
             self._db_instance.close()

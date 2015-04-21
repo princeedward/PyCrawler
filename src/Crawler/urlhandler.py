@@ -1,6 +1,6 @@
 # Modulerize this file for further customize
-from .fetcher import Job
-import re
+# from fetcher import Job
+# import re
 from urlparse import urlparse, urldefrag
 
 

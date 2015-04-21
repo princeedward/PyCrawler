@@ -29,6 +29,9 @@ class dbRedis(dbInterface):
     def has(self, key):
         return True if self._rds.get(key) else False
 
+    def delete(self, key):
+        return True if self._rds.delete(key) else False
+
     # TODO: figure out what to put here
     def close(self):
         pass

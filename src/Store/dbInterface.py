@@ -50,3 +50,9 @@ class dbInterface:
     @abstractmethod
     def has(self, key):
         pass
+
+    # @param key An object stored in the database
+    # @return True if key exists and delete successfully
+    @abstractmethod
+    def delete(self, key):
+        pass
