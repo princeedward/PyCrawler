@@ -45,6 +45,7 @@ DATABASE = {
 
 # pack the parameters into a single dictionary
 PARAM = {
+    "basedir": BASE_DIR,
     "parallel": PARALLEL,
     "processnum": PROCESSNUM,
     "crawldelay": CRAWLDELAY,
