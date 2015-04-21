@@ -1,4 +1,4 @@
-from Store.NoSQL import NoSQL
+from ..Store.NoSQL import NoSQL
 import cPickle as pk
 import email.utils as eut
 from time import gmtime, strftime, mktime
