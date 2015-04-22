@@ -103,16 +103,15 @@ class DnsChecker(Process):
         #                                  self.host_cache, self._workload))
         # self.host, self.port = self.server.server_address
 
-        # self.server_thread = threading.Thread(target=self.server.serve_forever)
+        # self.server_thread = threading.Thread(
+        #                                 target=self.server.serve_forever)
         # self.server_thread.daemon = True
         # self._stop = threading.Event()
         self._stop = flags[1] if flags and len(flags) > 1 else threading.Event()
 
     def close(self):
-        print "Begin to close the process"
         self._stop.set()
         with self._workload:
-            print "notify has been called"
             self._workload.notify()
 
     def run(self):
@@ -131,20 +130,18 @@ class DnsChecker(Process):
         self.server_thread.start()
         while not self._stop.is_set():
             with self._workload:
-                for query in self.adns_state.completed():
-                    ip = query.check()
-                    host = self.host_cache[query]
-                    del self.host_cache[query]
-                    if len(ip[3]) >= 1:
-                        self.ip_cache[host] = ip[3][0]
+                while len(self.host_cache) > 0:
+                    for query in self.adns_state.completed():
+                        ip = query.check()
+                        host = self.host_cache[query]
+                        del self.host_cache[query]
+                        if len(ip[3]) >= 1:
+                            self.ip_cache[host] = ip[3][0]
                 self._workload.wait()
-        print "Get out of the loop:", self.name
         self.server.shutdown()
-        print "Shutted down the server"
 
     def __del__(self):
         self.close()
-        print "Server shutting down"
 
 
 def DnsCacher(host="localhost", port=5436):
@@ -239,7 +236,5 @@ if __name__ == "__main__":
         dns_checker = DnsChecker("localhost", 5436, flags)
     dns_checker.daemon = True
     dns_checker.start()
-    import time
-    time.sleep(5)
-    # dns_checker.join()
+    dns_checker.join()
     dns_checker.close()
