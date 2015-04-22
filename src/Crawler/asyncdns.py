@@ -97,17 +97,9 @@ class DnsChecker(Process):
             threading.Condition()
         self.host = host
         self.port = port
-        # self.server = ThreadedTCPServer((host, port),
-        #                                 ThreadedRequestHandler,
-        #                                 (self.adns_state, self.ip_cache,
-        #                                  self.host_cache, self._workload))
-        # self.host, self.port = self.server.server_address
-
-        # self.server_thread = threading.Thread(
-        #                                 target=self.server.serve_forever)
-        # self.server_thread.daemon = True
         # self._stop = threading.Event()
         self._stop = flags[1] if flags and len(flags) > 1 else threading.Event()
+        self._prints = flags[2] if flags and len(flags) > 2 else True
 
     def close(self):
         self._stop.set()
@@ -115,10 +107,12 @@ class DnsChecker(Process):
             self._workload.notify()
 
     def run(self):
-        print "DNS cache server is running at: %s:%d" % (self.host, self.port)
-        print "This server uses BIND9 and GNU adns library to resolve dns"
-        print "To submit queries," \
-            " please use DnsBuffer() function to create a query object"
+        if self._prints:
+            print "DNS cache server is running at: %s:%d" % (self.host,
+                                                             self.port)
+            print "This server uses BIND9 and GNU adns library to resolve dns"
+            print "To submit queries," \
+                " please use DnsBuffer() function to create a query object"
         self.server = ThreadedTCPServer((self.host, self.port),
                                         ThreadedRequestHandler,
                                         (self.adns_state, self.ip_cache,
@@ -145,7 +139,8 @@ class DnsChecker(Process):
 
 
 def DnsCacher(host="localhost", port=5436):
-    dns_checker = DnsChecker(host, port)
+    flags = [Condition(), Event(), False]
+    dns_checker = DnsChecker(host, port, flags)
     dns_checker.daemon = False
     dns_checker.start()
     return dns_checker
