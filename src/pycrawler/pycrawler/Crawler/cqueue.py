@@ -7,7 +7,7 @@ from multiprocessing import Queue, Process
 from time import gmtime, mktime
 from Store.NoSQL import NoSQL
 from reppy.cache import RobotsCache
-from .httpclient import HttpClient, RelativeURIError
+from httpclient import HttpClient, RelativeURIError
 from setting import PARAM
 # -- for daemon interface --
 import SocketServer

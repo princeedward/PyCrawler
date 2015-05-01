@@ -2,8 +2,8 @@ from django.shortcuts import render
 # from django.http import HttpResponse
 # from django.template import RequestContext, loader
 import httplib
-from Util.UrlParser import urlParser as urlparser
-from Util.XpathEval import XpathEval
+from pycrawler.Util.UrlParser import urlParser as urlparser
+from pycrawler.Util.XpathEval import XpathEval
 
 # Create your views here.
 DOC_MAX_SIZE = 35000000
@@ -13,6 +13,7 @@ def index(request):
     return render(request, 'xpathEvaluation/index.html', {})
 
 
+# TODO: Simplify this function
 def xeval(request):
     xpath_eval = request.GET['xpath_string']
     if not XpathEval.validateXpath(xpath_eval):

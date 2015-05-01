@@ -63,3 +63,5 @@ target/
 # Vim temporary files
 *.swp
 
+# Virtual environment
+*env/
