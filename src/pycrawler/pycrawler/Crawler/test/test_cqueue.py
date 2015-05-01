@@ -1,11 +1,19 @@
 import unittest
 from cqueue import cQueue
+from setting import PARAM
+import multiprocessing
 
 
-class testcQueue(unittest.TestCase):
+class testCQueue(unittest.TestCase):
 
-    def test_only_queue(self):
-        # use queue in multiple process
+    def test_normal_queue(self):
+        param = PARAM
+        test_queue = cQueue(param)
+        start_flag = multiprocessing.Event()
+        class test_process(multiprocessing.Process):
+            def __init__(self, job_queue, others):
+                self._job_queue = job_queue
+                self._start = others[0]
 
-    def test_daemon(self):
-        # Use queue as an independent process
+            def run(self):
+                self._start.wait()
