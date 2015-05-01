@@ -65,3 +65,7 @@ target/
 
 # Virtual environment
 *env/
+
+# Cyclic complexity testing script
+cc.py
+pygenie.py

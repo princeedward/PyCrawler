@@ -1,4 +1,4 @@
-from XpathEval import XpathEval
+from pycrawler.Util.XpathEval import XpathEval
 import unittest
 
 
