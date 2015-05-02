@@ -1,8 +1,9 @@
 import unittest
-from NoSQL import NoSQL
 import redis
 import multiprocessing
-from test_data import  BIG_LIST
+from pycrawler.Store.NoSQL import NoSQL
+from .test_data import BIG_LIST
+
 
 class test_nosql(unittest.TestCase):
 
@@ -16,7 +17,7 @@ class test_nosql(unittest.TestCase):
         # test right database type
         try:
             db = NoSQL("redis", param)
-        except Exception as e:
+        except Exception:
             self.fail("Correct database name:redis, unexpected exceptions")
         # try:
         #     db = NoSQL("bdb", param)
@@ -25,13 +26,13 @@ class test_nosql(unittest.TestCase):
 
     def test_redis_init(self):
         # test bad init parameters
-        param = {"host": "localhost", "port":6379, "db":0}
+        param = {"host": "localhost", "port": 6379, "db": 0}
         try:
             db = NoSQL("redis", param)
-            db.set("foo","bar")
-        except Exception: #TODO: Change this to dictionary no key exception
+            db.set("foo", "bar")
+        except Exception:  # TODO: Change this to dictionary no key exception
             self.fail("Unexpected redis NoSQL instance init exception")
-        param = {"host": "localhost", "port":"6379", "db":0}
+        param = {"host": "localhost", "port": "6379", "db": 0}
         try:
             db = NoSQL("redis", param)
             db.set("foo", "bar")
@@ -39,22 +40,21 @@ class test_nosql(unittest.TestCase):
             self.fail("Unexpected redis NoSQL instance init exception")
         with self.assertRaises(redis.ConnectionError):
             # Port number cannot be string
-            param = {"host": "localhost", "port":"6379", "db":"0"}
+            param = {"host": "localhost", "port": "6379", "db": "0"}
             db = NoSQL("redis", param)
             db.set("foo", "bar")
-            param = {"host": "big", "port":"6379", "db":0}
+            param = {"host": "big", "port": "6379", "db": 0}
             db = NoSQL("redis", param)
             db.set("foo", "bar")
-            param = {"host": "localhost", "port":"dog", "db":0}
+            param = {"host": "localhost", "port": "dog", "db": 0}
             db = NoSQL("redis", param)
             db.set("foo", "bar")
-            param = {"host": "localhost", "port":"6379", "db":"5f"}
+            param = {"host": "localhost", "port": "6379", "db": "5f"}
             db = NoSQL("redis", param)
             db.set("foo", "bar")
-            param = {"host": "localhost", "port":"6d379", "db":0}
+            param = {"host": "localhost", "port": "6d379", "db": 0}
             db = NoSQL("redis", param)
             db.set("foo", "bar")
-
 
     def test_redis_set_value(self):
         # ---- test set key value pairs -------
@@ -93,25 +93,30 @@ class test_nosql(unittest.TestCase):
         # destruct should not raise error
         pass
 
+
 def worker(pairs):
     param = {}
     db = NoSQL("redis", param)
     db.set(pairs[0], pairs[1])
+
 
 def worker2(value):
     param = {}
     db = NoSQL("redis", param)
     db.set("foo", value)
 
+
 def worker3(pairs):
     param = {}
     db = NoSQL("redis", param)
     db.get(pairs[0])
 
+
 def worker4(value):
     param = {}
     db = NoSQL("redis", param)
     db.get("foo")
+
 
 def worker5(value):
     param = {}
@@ -119,11 +124,13 @@ def worker5(value):
     db = NoSQL("redis", param)
     db.set("foo", "bar")
 
+
 def worker6(value):
     param = {}
     param["db"] = value
     db = NoSQL("redis", param)
     db.get("foo")
+
 
 def main():
     unittest.main()

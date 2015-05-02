@@ -2,12 +2,13 @@ import lxml.html as xhtml
 import re
 import hashlib
 from urlparse import urlparse
-from checker import UrlChecker
-from httpclient import HttpClient, RelativeURIError, ServerNotFoundError
-from urlhandler import UrlHandler
-from asyncdns import DnsBuffer
-from urlregex import URL_REGEX
-from contentsave import SaveAndStatistics
+from pycrawler.Crawler.checker import UrlChecker
+from pycrawler.Crawler.httpclient import HttpClient, \
+    RelativeURIError, ServerNotFoundError
+from pycrawler.Crawler.urlhandler import UrlHandler
+from pycrawler.Crawler.asyncdns import DnsBuffer
+from pycrawler.Crawler.urlregex import URL_REGEX
+from pycrawler.Crawler.contentsave import SaveAndStatistics
 
 
 # This class indicate the status of the fetcher
@@ -49,7 +50,7 @@ class Job:
         # TODO: Modularize this function
         h_func = hashlib.sha1()
         h_func.update(url)
-        return h_func.hexdigest
+        return h_func.hexdigest()
 
 
 def CheckContentType(type_str, allowed_types):
@@ -116,8 +117,8 @@ def Fetcher(job, param, works, monitor):
                              handle=UrlHandler, root_url=job.url)
     # do statistics and save the document and statistics (asyn)
     SaveAndStatistics(job, content, param,
-                      response_header = resp_header,
-                      url_cache = records
+                      response_header=resp_header,
+                      url_cache=records
                       )
     # If job has been finished succesful, indicate the main process
     monitor.put(Status(200))

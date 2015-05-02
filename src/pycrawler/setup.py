@@ -19,9 +19,13 @@ setup(name='pycrawler',
       zip_safe=True,
       install_requires=[
           # -*- Extra requirements: -*-
-          'cython',
-          'redis',
-          'lxml',
+          'cython',       # http://cython.org
+          'redis',        # https://github.com/andymccurdy/redis-py
+          'lxml',         # http://lxml.de/
+          'reppy',        # https://github.com/seomoz/reppy
+          'httplib2',     # https://github.com/jcgregorio/httplib2
+          'adns-python',  # https://code.google.com/p/adns-python/
+          'protobuf==2.5',     # https://developers.google.com/protocol-buffers/docs/pythontutorial
       ],
       entry_points="""
       # -*- Entry points: -*-
