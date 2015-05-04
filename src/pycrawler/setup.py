@@ -26,6 +26,7 @@ setup(name='pycrawler',
           'httplib2',     # https://github.com/jcgregorio/httplib2
           'adns-python',  # https://code.google.com/p/adns-python/
           'protobuf==2.5',     # https://developers.google.com/protocol-buffers/docs/pythontutorial
+          'requests[security]',
       ],
       entry_points="""
       # -*- Entry points: -*-

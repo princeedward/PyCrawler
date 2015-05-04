@@ -7,7 +7,7 @@ import multiprocessing
 import multiprocessing.queues as mltq
 from time import gmtime, mktime
 from reppy.cache import RobotsCache
-# from pycrawler.Store.NoSQL import NoSQL
+from pycrawler.Store.NoSQL import NoSQLDict
 from pycrawler.Crawler.fetcher import Job
 # -- for daemon interface --
 import SocketServer
@@ -18,12 +18,31 @@ import pycrawler.Crawler.job_pb2 as job_pb2
 MAX_MESSAGE_SIZE = 3500000
 
 
+class RobotsCacheCheckpoint(RobotsCache):
+    """ A customized RobotsCache object to store robot.txt into databse
+    """
+
+    def __init__(self, store, *args, **kwargs):
+        RobotsCache.__init__(self, *args, **kwargs)
+        self._store = store
+        self._cache = NoSQLDict(dbtype=self._store["engine"],
+                                param={'host': self._store['host'],
+                                       'port': self._store['port'],
+                                       'db': self._store['db']['robot']})
+
+    def clear(self):
+        self._cache = NoSQLDict(dbtype=self._store["engine"],
+                                param={'host': self._store['host'],
+                                       'port': self._store['port'],
+                                       'db': self._store['db']['robot']})
+
 class cQueue(mltq.Queue):
 
     def __init__(self, param):
         mltq.Queue.__init__(self)
         self._cached_domain = {}
-        self._robot_cache = RobotsCache()
+        #  self._robot_cache = RobotsCache()
+        self._robot_cache = RobotsCacheCheckpoint(param["database"])
         self._default_delay = param["crawldelay"] if "crawldelay" in param \
             else 1
         self._agent_name = param["agentname"] if "agentname" in param \
@@ -43,9 +62,7 @@ class cQueue(mltq.Queue):
         # Thread safe needs to be guaranteed
         while True:
             job = mltq.Queue.get(self, block, timeout)
-            print "Getted a new job", job.url
             if not self._robot_cache.allowed(job.url, self._agent_name):
-                print "Cannot process this url"
                 continue  # If the url is not allowed to crawl, then disgard
             domain = job.host
             current_time = gmtime()
@@ -61,11 +78,10 @@ class cQueue(mltq.Queue):
                 self._cached_domain[domain] = current_time
                 return job
             else:
-                self.put(self, job)
+                self.put(job, timeout=timeout)
+
 
 # -- This following is a daemon interface --
-
-
 class cQueueThreadRequestHandler(SocketServer.StreamRequestHandler):
 
     def handle(self):
@@ -260,5 +276,5 @@ class cQueueMessager:
             self._socket.close()
 
 
-def cQueuequerier(host, port):
+def cQueueQuerier(host, port):
     return cQueueMessager(host, port)
