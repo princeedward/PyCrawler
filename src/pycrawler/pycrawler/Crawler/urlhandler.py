@@ -17,4 +17,4 @@ def SingleUrlFilter(url, param):
     result = urlparse(url)
     domain = result.netloc
     defraged_url = urldefrag(url)
-    return defraged_url, domain
+    return defraged_url[0], domain

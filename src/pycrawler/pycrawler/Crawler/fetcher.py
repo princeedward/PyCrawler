@@ -27,26 +27,29 @@ class Status:
 class Job:
 
     def __init__(self, url, params):
+        if "://" not in url:
+            raise ValueError("The 'url' has to be a absolute url")
         self.url = url
-        self.identifier = self.calculateID(self.url)
+        self.identifier = self._calculateID(self.url)
         if "host" in params:
             self.host = params["host"]
         else:
             parsed_url = urlparse(self.url)
             self.host = parsed_url.netloc
         self.host_ip = None
+        self.last_update = None
 
     def setLastUpdate(self, date):
         self.last_update = date
 
     def setUrl(self, url):
         self.url = url
-        self.identifier = self.calculateID(self.url)
+        self.identifier = self._calculateID(self.url)
 
     def setIP(self, ip):
         self.host_ip = ip
 
-    def calculateID(self, url):
+    def _calculateID(self, url):
         # TODO: Modularize this function
         h_func = hashlib.sha1()
         h_func.update(url)
@@ -62,9 +65,8 @@ def CheckContentType(type_str, allowed_types):
 # TODO: In a future version, put this in the parameter
 USER_AGENT = "penn/cis455/crawler/0.1"
 
+
 # Fetcher function which runs in each child process
-
-
 def Fetcher(job, param, works, monitor):
     # document size and document type check using response header
     # better with persistence connection
@@ -136,17 +138,11 @@ def UrlExtractor(str_doc, param, wqueue, doc_type="html",
     # Enable ip and port number input
     adns_checker = DnsBuffer()
     if "html" in doc_type:
-        html_tree = xhtml.fromstring(str_doc)
-        if root_url:
-            html_tree.make_links_absolute(root_url)
-        # ignore the links in the content
-        urls = html_tree.xpath('//a/@href')
+        urls = HtmlUrlExtractor(str_doc, root_url)
     # elif "xml" in doc_type: # TODO: Think about this
     # elif "text/plain" in doc_type:
     elif "xml" in doc_type or "text/plain" in doc_type:
-        tmp_results = re.findall(URL_REGEX, str_doc)
-        urls = [each[0] if "http" in each[0] else "".join(["http://", each[0]])
-                for each in tmp_results if len(each[0]) > 0]
+        urls = TextUrlExtractor(str_doc)
     else:
         return None
     # TODO: think about where to put the filter level url filtering
@@ -166,3 +162,30 @@ def UrlExtractor(str_doc, param, wqueue, doc_type="html",
         if "domain" in others:
             adns_checker.submit(others["domain"])
     return url_set
+
+def HtmlUrlExtractor(str_doc, root_url=None):
+    """ Extract urls from a html document string
+    Args:
+        str_doc (str) - Html document string
+        root_url (str) - Current page root url
+    Returns:
+        (list of str) A list of urls extracted from the page
+    """
+
+    html_tree = xhtml.fromstring(str_doc)
+    if root_url:
+        html_tree.make_links_absolute(root_url)
+    # ignore the links in the content
+    urls = html_tree.xpath('//a/@href')
+    return urls
+
+def TextUrlExtractor(str_doc):
+    """ Extract urls from a text document string
+    Args:
+        str_doc (str) - Text document string
+    Returns:
+        (list of str) A list of urls extracted from the page
+    """
+    tmp_results = re.findall(URL_REGEX, str_doc)
+    urls = [each[0] if "http" in each[0] else "".join(["http://", each[0]])
+            for each in tmp_results if len(each[0]) > 0]
